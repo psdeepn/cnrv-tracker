@@ -1,4 +1,4 @@
-const CACHE = "cnrv-v1";
+const CACHE = "cnrv-v2";
 const ASSETS = ["./", "./index.html", "./dist/bundle.js", "./dist/styles.css", "./manifest.json"];
 
 self.addEventListener("install", (e) => {
@@ -13,20 +13,21 @@ self.addEventListener("activate", (e) => {
   self.clients.claim();
 });
 
+// Network-first: always fetch the freshest app code when online, and fall back
+// to the cache only when offline. This prevents users being stuck on a stale
+// bundle after a new deploy.
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
+  if (!e.request.url.startsWith(self.location.origin)) return;
   e.respondWith(
-    caches.match(e.request).then((cached) => {
-      const fetchPromise = fetch(e.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && e.request.url.startsWith(self.location.origin)) {
-            const clone = networkResponse.clone();
-            caches.open(CACHE).then((cache) => cache.put(e.request, clone));
-          }
-          return networkResponse;
-        })
-        .catch(() => cached);
-      return cached || fetchPromise;
-    })
+    fetch(e.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE).then((cache) => cache.put(e.request, clone));
+        }
+        return networkResponse;
+      })
+      .catch(() => caches.match(e.request))
   );
 });

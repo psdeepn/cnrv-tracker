@@ -1217,7 +1217,10 @@ function AdminData({ staff, metrics, months, monthlyData, monthLabels, auditLog,
 /* ---------------------------------------------------------------------- */
 function StaffDashboard({ me, metrics, months, monthlyData, monthLabels }) {
   const getLabel = (key) => monthLabels?.[key] || defaultMonthLabel(key);
-  const sortedMonths = [...months].sort();
+  // Include the configured months AND any month that actually has data logged
+  // for this person, so scores still show even if a month is missing from the
+  // roster's month list.
+  const sortedMonths = [...new Set([...(months || []), ...Object.keys(monthlyData || {}).filter((m) => monthlyData[m]?.[me.id])])].sort();
   const trend = sortedMonths.map((m) => ({ month: getLabel(m), score: staffScore(monthlyData, m, me.id, metrics) }));
 
   // Default to the most recent month that actually has data logged for this
