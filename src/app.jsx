@@ -46,7 +46,7 @@ const STATUS_OPTIONS = ["Active", "Absence", "Work Leave", "Exams", "Developer",
    not real authentication — see README's security notes for what that
    means in practice.
    ======================================================================== */
-const ADMIN_PIN = "admin123";
+const ADMIN_PIN = "CnRV@dm1n@08";
 
 /* Seeded from the CnRV Mod Activity Sheet — June 2026. */
 /* No roster is pre-loaded in the public build — import your real data

@@ -15,3 +15,6 @@ PRIVATE-cnrv-real-data-backup.json
 # Build/snapshot archives
 files.zip
 cnrv-android-windows-project.zip
+
+# Local Netlify folder
+.netlify
