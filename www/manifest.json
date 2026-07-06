@@ -1,0 +1,14 @@
+{
+  "name": "CnRV Mod Activity",
+  "short_name": "CnRV",
+  "description": "Roster, monthly metrics, and staff activity scoring — automated.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0A0F0C",
+  "theme_color": "#0A0F0C",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

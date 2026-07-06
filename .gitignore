@@ -1,0 +1,17 @@
+node_modules/
+dist-electron/
+www/dist/
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/capacitor-cordova-android-plugins/build/
+*.log
+.DS_Store
+
+# Sensitive real staff data — never commit
+PRIVATE-cnrv-real-data-backup.json
+
+# Build/snapshot archives
+files.zip
+cnrv-android-windows-project.zip

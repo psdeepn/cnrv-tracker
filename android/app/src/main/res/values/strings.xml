@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CnRV Mod Activity</string>
+    <string name="title_activity_main">CnRV Mod Activity</string>
+    <string name="package_name">com.cnrv.modactivity</string>
+    <string name="custom_url_scheme">com.cnrv.modactivity</string>
+</resources>
