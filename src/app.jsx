@@ -1219,15 +1219,36 @@ function StaffDashboard({ me, metrics, months, monthlyData, monthLabels }) {
   const getLabel = (key) => monthLabels?.[key] || defaultMonthLabel(key);
   const sortedMonths = [...months].sort();
   const trend = sortedMonths.map((m) => ({ month: getLabel(m), score: staffScore(monthlyData, m, me.id, metrics) }));
-  const latestMonth = sortedMonths[sortedMonths.length - 1];
-  const latestScore = latestMonth ? staffScore(monthlyData, latestMonth, me.id, metrics) : 0;
-  const breakdown = latestMonth ? metrics.map((m) => ({ name: m.name, value: monthlyData?.[latestMonth]?.[me.id]?.[m.id] || 0 })).filter((x) => x.value > 0) : [];
+
+  // Default to the most recent month that actually has data logged for this
+  // person; fall back to the latest month overall. This avoids showing a 0 when
+  // the newest month simply hasn't been filled in yet.
+  const monthsWithData = sortedMonths.filter((m) => monthlyData?.[m]?.[me.id]);
+  const defaultMonth = monthsWithData[monthsWithData.length - 1] || sortedMonths[sortedMonths.length - 1] || "";
+  const [selMonth, setSelMonth] = useState(defaultMonth);
+  const activeMonth = months.includes(selMonth) ? selMonth : defaultMonth;
+
+  const rec = monthlyData?.[activeMonth]?.[me.id] || {};
+  const selScore = activeMonth ? staffScore(monthlyData, activeMonth, me.id, metrics) : 0;
+  // Show every metric (Logins, Reports, etc.) for the selected month — including
+  // zeros — with the points each contributes (count × weight).
+  const breakdown = metrics.map((m) => ({ name: m.name, value: rec[m.id] || 0, weight: m.weight, points: (rec[m.id] || 0) * m.weight }));
+  const isAbsent = !!rec.absent;
   const absentMonths = sortedMonths.filter((m) => monthlyData?.[m]?.[me.id]?.absent).length;
 
   return (
     <div className="flex flex-col gap-6">
+      {sortedMonths.length > 0 && (
+        <Card className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <span className="text-xs tracking-wide uppercase shrink-0" style={{ color: T.faint, fontFamily: "Inter" }}>Viewing month</span>
+          <Select value={activeMonth} onChange={(e) => setSelMonth(e.target.value)} className="sm:max-w-xs">
+            {sortedMonths.map((m) => <option key={m} value={m}>{getLabel(m)}</option>)}
+          </Select>
+          {isAbsent && <span className="text-xs px-2 py-1 rounded-full shrink-0" style={{ background: `${T.warning}22`, color: T.warning, fontFamily: "Inter" }}>Marked absent this month</span>}
+        </Card>
+      )}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        <StatTile label={latestMonth ? `Score — ${getLabel(latestMonth)}` : "Score"} value={latestScore.toLocaleString()} accent={T.accent} />
+        <StatTile label={activeMonth ? `Total score — ${getLabel(activeMonth)}` : "Score"} value={selScore.toLocaleString()} accent={T.accent} />
         <StatTile label="Position" value={me.position || "—"} />
         <StatTile label="Months absent" value={absentMonths} accent={absentMonths ? T.warning : undefined} />
       </div>
@@ -1257,11 +1278,23 @@ function StaffDashboard({ me, metrics, months, monthlyData, monthLabels }) {
           </ResponsiveContainer>
         </Card>
       )}
-      {breakdown.length > 0 && (
+      {activeMonth && (
         <Card className="p-5">
-          <h3 className="text-sm mb-4" style={{ fontFamily: "Space Grotesk", color: T.text, fontWeight: 600 }}>This month's activity — {getLabel(latestMonth)}</h3>
-          <div className="flex flex-col gap-2">
-            {breakdown.map((b) => <div key={b.name} className="flex items-center justify-between text-sm"><span style={{ color: T.muted, fontFamily: "Inter" }}>{b.name}</span><span style={{ color: T.text, fontFamily: "JetBrains Mono" }}>{b.value}</span></div>)}
+          <h3 className="text-sm mb-4" style={{ fontFamily: "Space Grotesk", color: T.text, fontWeight: 600 }}>Activity breakdown — {getLabel(activeMonth)}</h3>
+          <div className="grid grid-cols-[1fr_auto_auto] gap-x-6 gap-y-2 text-sm items-center">
+            <span className="text-xs uppercase tracking-wide" style={{ color: T.faint, fontFamily: "Inter" }}>Metric</span>
+            <span className="text-xs uppercase tracking-wide text-right" style={{ color: T.faint, fontFamily: "Inter" }}>Count</span>
+            <span className="text-xs uppercase tracking-wide text-right" style={{ color: T.faint, fontFamily: "Inter" }}>Points</span>
+            {breakdown.map((b) => (
+              <React.Fragment key={b.name}>
+                <span style={{ color: T.muted, fontFamily: "Inter" }}>{b.name}<span style={{ color: T.faint }}> ×{b.weight}</span></span>
+                <span className="text-right" style={{ color: T.text, fontFamily: "JetBrains Mono" }}>{b.value}</span>
+                <span className="text-right" style={{ color: b.points ? T.text : T.faint, fontFamily: "JetBrains Mono" }}>{b.points.toLocaleString()}</span>
+              </React.Fragment>
+            ))}
+            <span className="pt-2 mt-1" style={{ color: T.text, fontFamily: "Inter", fontWeight: 600, borderTop: `1px solid ${T.border}` }}>Total</span>
+            <span className="pt-2 mt-1 text-right" style={{ borderTop: `1px solid ${T.border}` }}></span>
+            <span className="pt-2 mt-1 text-right" style={{ color: T.accent, fontFamily: "JetBrains Mono", fontWeight: 600, borderTop: `1px solid ${T.border}` }}>{selScore.toLocaleString()}</span>
           </div>
         </Card>
       )}
